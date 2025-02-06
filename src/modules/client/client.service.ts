@@ -1,14 +1,17 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { ClientRepository } from './repositories/client.repository';
 import { CreateClientDto } from './dtos/createClient.dto';
 import { RolePermissions } from 'src/common/rolePermissions';
 import { ExceptionHelper } from 'src/common/instances/ExceptionHelper';
 import { RoleService } from '../role/role.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Client, ClientDocument } from './entities/client.entity';
 
 @Injectable()
 export class ClientService {
     constructor(
-        private readonly clientRepository: ClientRepository,
+        @InjectModel(Client.name)
+        private readonly clientModel: Model<ClientDocument>,
         private readonly roleService: RoleService
     ) { }
 
@@ -20,16 +23,13 @@ export class ClientService {
         }
 
         try {
-            const client = await this.clientRepository.createClient(clientObj);
+            const client = await this.clientModel.create(clientObj);
             const rolePermissions = RolePermissions()
             for (const role of rolePermissions) {
                 await this.roleService.createRolesAndAddPermission(role.name, role.permissions)
             }
 
-            return {
-                client,
-                rolePermissions
-            }
+            return client;
         }
         catch (err) {
             ExceptionHelper.getInstance().defaultError(err?.message, 'something went wrong', HttpStatus.BAD_REQUEST)

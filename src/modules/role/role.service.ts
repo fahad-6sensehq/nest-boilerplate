@@ -1,16 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { RoleRepository } from './repositories/role.repository';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Role, RoleDocument } from './entities/role.entity';
+import { PermissionService } from '../permission/permission.service';
+import { RolePermissionService } from '../role-permission/role-permission.service';
 
 @Injectable()
 export class RoleService {
   constructor(
-    private readonly roleRepository: RoleRepository,
+    @InjectModel(Role.name) private readonly roleModel: Model<RoleDocument>,
+    private readonly permissionService: PermissionService,
+    private readonly rolePermissionService: RolePermissionService,
   ) { }
 
   async create(createRoleDto: CreateRoleDto) {
-    return await this.roleRepository.create(createRoleDto);
+    return await this.roleModel.create(createRoleDto);
+  }
+
+  async findByName(role: string) {
+    return await this.roleModel.findOne({ name: role });
   }
 
   findAll() {
@@ -22,11 +32,26 @@ export class RoleService {
   }
 
   async createRolesAndAddPermission(name: string, permission: string[]) {
-    const role = await this.roleRepository.find({ name });
-    if (!role) {
-      return await this.roleRepository.create({ name, status: 'active' });
+    const roleExists = await this.roleModel.find({ name });
+    let role;
+    if (roleExists.length === 0) {
+      role = await this.roleModel.create({ name, status: 'active' });
     }
-    return role;
+    else {
+      role = roleExists[0];
+    }
+    return await this.assignPermissionToRole(role._id, permission);
+  }
+
+  async assignPermissionToRole(roleId: string, permission: string[]) {
+    for (const perm of permission) {
+      let permissionObj = await this.permissionService.findByName(perm);
+      if (!permissionObj) {
+        permissionObj = await this.permissionService.create({ name: perm });
+      }
+      await this.rolePermissionService.create({ roleId: roleId.toString(), permissionId: permissionObj._id.toString() });
+    }
+    return;
   }
 
   update(id: number, updateRoleDto: UpdateRoleDto) {
