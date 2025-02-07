@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
-export type RolePermissionDocument = RolePermission & Document;
+export type RolePermissionDocument = HydratedDocument<RolePermission>;
 
 @Schema()
 export class RolePermission {
@@ -12,4 +12,5 @@ export class RolePermission {
     permissionId: string;
 }
 
-export const RolePermissionSchema = SchemaFactory.createForClass(RolePermission);
+export const RolePermissionSchema =
+    SchemaFactory.createForClass(RolePermission);

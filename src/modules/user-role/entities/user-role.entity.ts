@@ -1,14 +1,14 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import mongoose from "mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
-export type UserRoleDocument = UserRole & mongoose.Document;
+export type UserRoleDocument = HydratedDocument<UserRole>;
 
 @Schema()
 export class UserRole {
-    @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'User'})
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
     userId: string;
-    
-    @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'Role'})
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Role' })
     roleId: string;
 }
 

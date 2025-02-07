@@ -1,6 +1,7 @@
-import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
 
-export type RoleDocument = Role & Document;
+export type RoleDocument = HydratedDocument<Role>;
 
 @Schema()
 export class Role {
@@ -8,7 +9,7 @@ export class Role {
     name: string;
 
     @Prop()
-    status: string
+    status: string;
 }
 
 export const RoleSchema = SchemaFactory.createForClass(Role);
